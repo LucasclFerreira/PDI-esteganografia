@@ -5,6 +5,7 @@
  *---------------------------------------------------------*/
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -24,14 +25,14 @@ void decode(image In)
 
     // decode name
     int flag = 1;
-    int cont = 0;
+    int count = 0;
     while(flag) {
-        if ((cont + 1) % 3 == 0) {
-            extraction = In->px[cont] & 0xFF;
-        } else if ((cont + 1) % 3 == 1) {
-            extraction = (In->px[cont] & 0xFF0000) >> 16;
-        } else if ((cont + 1) % 3 == 2) {
-            extraction = (In->px[cont] & 0xFF00) >> 8;
+        if ((count + 1) % 3 == 0) {
+            extraction = In->px[count] & 0xFF;
+        } else if ((count + 1) % 3 == 1) {
+            extraction = (In->px[count] & 0xFF0000) >> 16;
+        } else if ((count + 1) % 3 == 2) {
+            extraction = (In->px[count] & 0xFF00) >> 8;
         }
 
         printf("%d", (extraction & 0x01));
@@ -46,7 +47,7 @@ void decode(image In)
             asciiChar = byte;
             
             char asciiString[2] = {asciiChar, '\0'};
-            printf("ASCII = [%c] no cont = [%d]\n", asciiChar, cont);
+            printf("ASCII = [%c]\n", asciiChar);
             strcat(name, asciiString);
 
             if (!asciiChar) {
@@ -56,39 +57,30 @@ void decode(image In)
             byte = 0;
             bitCount = 0;
         }
-        cont++;
+        count++;
     }
     
     printf("\nFile name: %s\n", name);
     
 
     // decode size
-    for (int i = 0; i < 32; i++, cont++) {
-        if ((cont + 1) % 3 == 0) {
-            extraction = In->px[cont] & 0xFF;
-        } else if ((cont + 1) % 3 == 1) {
-            extraction = (In->px[cont] & 0xFF0000) >> 16;
-        } else if ((cont + 1) % 3 == 2) {
-            extraction = (In->px[cont] & 0xFF00) >> 8;
+    uint32_t binarySize = 0;
+    for (int i = 0; i < 32; i++, count++) {
+        if ((count + 1) % 3 == 0) {
+            extraction = In->px[count] & 0xFF;
+        } else if ((count + 1) % 3 == 1) {
+            extraction = (In->px[count] & 0xFF0000) >> 16;
+        } else if ((count + 1) % 3 == 2) {
+            extraction = (In->px[count] & 0xFF00) >> 8;
         }
 
-        printf("%d", (extraction & 0x01));
+        // printf("%d", (extraction & 0x01));
 
-        byte <<= 1;
-        byte |= (extraction & 0x01);
-
-        bitCount++;
-
-        if (bitCount == 32) {
-            printf("\nvalor do byte = %u\n", byte);
-            byte = 0;
-            bitCount = 0;
-        }
+        binarySize <<= 1;
+        binarySize |= (extraction & 0x01);
     }
-    printf("\nvalor atual do cont: %d\n", cont);
 
-    // fsize = 3592 * 8;
-    fsize = 75084 * 8;
+    fsize = binarySize * 8;
     printf("File size: %d bytes\n", fsize);
 
     // decode file
@@ -101,12 +93,12 @@ void decode(image In)
 
     printf("escrevendo...\n");
     while (fsize) {
-        if ((cont + 1) % 3 == 0) {
-            extraction = In->px[cont] & 0xFF;
-        } else if ((cont + 1) % 3 == 1) {
-            extraction = (In->px[cont] & 0xFF0000) >> 16;
-        } else if ((cont + 1) % 3 == 2) {
-            extraction = (In->px[cont] & 0xFF00) >> 8;
+        if ((count + 1) % 3 == 0) {
+            extraction = In->px[count] & 0xFF;
+        } else if ((count + 1) % 3 == 1) {
+            extraction = (In->px[count] & 0xFF0000) >> 16;
+        } else if ((count + 1) % 3 == 2) {
+            extraction = (In->px[count] & 0xFF00) >> 8;
         }
 
         byte <<= 1;
@@ -117,7 +109,7 @@ void decode(image In)
             byte = 0;
             bitCount = 0;
         }
-        cont++;
+        count++;
         fsize--;
     }
 

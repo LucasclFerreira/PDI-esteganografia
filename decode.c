@@ -21,20 +21,25 @@ void decode(image In)
     int bitCount = 0;
     char asciiChar = '\0';
 
+    printf("numero de linhas: %d\n", In->nr);
+    printf("numero de colunas: %d\n", In->nc);
+
     // char *str = calloc(100, sizeof(char));
     unsigned int extraction;
-    char cor;
-    for (int i = 0; i < 128; i++) {
-        if ((i + 1) % 3 == 0) {
-            cor = 'b';
-            extraction = In->px[i] & 0xFF;
-        } else if ((i + 1) % 3 == 1) {
-            cor = 'r';
-            extraction = (In->px[i] & 0xFF0000) >> 16;
-        } else if ((i + 1) % 3 == 2) {
-            cor = 'g';
-            extraction = (In->px[i] & 0xFF00) >> 8;
+    // char cor;
+
+    int flag = 1;
+    int cont = 0;
+    while(flag) {
+        if ((cont + 1) % 3 == 0) {
+            extraction = In->px[cont] & 0xFF;
+        } else if ((cont + 1) % 3 == 1) {
+            extraction = (In->px[cont] & 0xFF0000) >> 16;
+        } else if ((cont + 1) % 3 == 2) {
+            extraction = (In->px[cont] & 0xFF00) >> 8;
         }
+
+        printf("%d", (extraction & 0x01));
 
         byte <<= 1;
         byte |= (extraction & 0x01);
@@ -42,54 +47,100 @@ void decode(image In)
         bitCount++;
 
         if (bitCount == 8) {
-            asciiChar = byte;  // Assign the binary byte to the ASCII character variable
-            if (!asciiChar)
-                break;
-
-            // Use the ASCII character as needed
+            printf(" --> ");
+            asciiChar = byte;
+            
             char asciiString[2] = {asciiChar, '\0'};
-            printf("ASCII Character: %c\n", asciiChar);
+            printf("ASCII = [%c] no cont = [%d]\n", asciiChar, cont);
             strcat(name, asciiString);
 
+            if (!asciiChar) {
+                flag = 0;
+            }
+
+            byte = 0;
+            bitCount = 0;
+        }
+        cont++;
+    }
+    printf("\nvalor atual do cont: %d\n", cont);
+    
+    printf("\nFile name: %s\n", name);
+    
+    int val;
+    // decode file size
+    for (int i = 0; i < 32; i++, cont++) {
+        if ((cont + 1) % 3 == 0) {
+            extraction = In->px[cont] & 0xFF;
+        } else if ((cont + 1) % 3 == 1) {
+            extraction = (In->px[cont] & 0xFF0000) >> 16;
+        } else if ((cont + 1) % 3 == 2) {
+            extraction = (In->px[cont] & 0xFF00) >> 8;
+        }
+
+        printf("%d", (extraction & 0x01));
+
+        byte <<= 1;
+        byte |= (extraction & 0x01);
+
+        bitCount++;
+
+        if (bitCount == 8) {
+            printf("\n");
+            val = byte;
+            byte = 0;
+            bitCount = 0;
+        }
+    }
+
+    // fsize = 13776;
+    fsize = 75084;
+    printf("File size: %d bytes\n", fsize);
+    
+    // // decode file
+    
+    file = fopen(name, "wb");
+    if (!file)
+    {
+        printf("Cannot create file %s\n", name);
+        exit(10);
+    }
+    // decode the bytes of the file
+
+    // unsigned int *dados = malloc(fsize * sizeof(byte));
+    // int pos = 0;
+    printf("escrevendo...\n");
+    while (fsize) {
+        if ((cont + 1) % 3 == 0) {
+            extraction = In->px[cont] & 0xFF;
+        } else if ((cont + 1) % 3 == 1) {
+            extraction = (In->px[cont] & 0xFF0000) >> 16;
+        } else if ((cont + 1) % 3 == 2) {
+            extraction = (In->px[cont] & 0xFF00) >> 8;
+        }
+
+        byte <<= 1;
+        byte |= (extraction & 0x01);
+        bitCount++;
+        if (bitCount == 8) {
+            // Quando o byte estiver completo escreve no arquivo
+            //fwrite(&byte, sizeof(byte), 1, file);
+            // printf("bit completo no cont = [%d]\n", cont);
+            // dados[pos++] = byte;
+            fwrite(&byte, sizeof(byte), 1, file);
+            
             // Reset variables for the next byte
             byte = 0;
             bitCount = 0;
         }
-
-        // if (extraction & 0x01) {
-        //     printf("Na BANDA[%c] o ultimo bit eh 1\n", cor);
-        // } else {
-        //     printf("Na BANDA[%c] o ultimo bit eh 0\n", cor);
-        // }
+        cont++;
+        fsize--;
     }
 
-    
-
-    // // decode the name
-    // strcpy(name, str);
-    
-    printf("File name: %s\n", name);
-    
-    // decode file size
-    fsize = 293;
-    printf("File size: %d bytes\n", fsize);
-    
-    // decode file
-    
-    // file = fopen(name, "wb");
-    // if (!file)
-    // {
-    //     printf("Cannot create file %s\n", name);
-    //     exit(10);
-    // }
-    // while (fsize)
-    // {
-    //     // decode the bytes of the file
-
-    
-    //     fsize--;
-    // }
+    printf("terminado!\n");
     fclose(file);
+    free(name);
+    // free(dados);
 }
 
 void msg(char *s)

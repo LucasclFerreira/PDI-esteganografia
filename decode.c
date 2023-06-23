@@ -87,8 +87,8 @@ void decode(image In)
     }
     printf("\nvalor atual do cont: %d\n", cont);
 
-    fsize = 3592 * 8;
-    // fsize = 75084 * 8;
+    // fsize = 3592 * 8;
+    fsize = 75084 * 8;
     printf("File size: %d bytes\n", fsize);
 
     // decode file

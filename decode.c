@@ -20,14 +20,9 @@ void decode(image In)
     unsigned char byte;
     int bitCount = 0;
     char asciiChar = '\0';
-
-    printf("numero de linhas: %d\n", In->nr);
-    printf("numero de colunas: %d\n", In->nc);
-
-    // char *str = calloc(100, sizeof(char));
     unsigned int extraction;
-    // char cor;
 
+    // decode name
     int flag = 1;
     int cont = 0;
     while(flag) {
@@ -63,12 +58,11 @@ void decode(image In)
         }
         cont++;
     }
-    printf("\nvalor atual do cont: %d\n", cont);
     
     printf("\nFile name: %s\n", name);
     
-    int val;
-    // decode file size
+
+    // decode size
     for (int i = 0; i < 32; i++, cont++) {
         if ((cont + 1) % 3 == 0) {
             extraction = In->px[cont] & 0xFF;
@@ -85,30 +79,26 @@ void decode(image In)
 
         bitCount++;
 
-        if (bitCount == 8) {
-            printf("\n");
-            val = byte;
+        if (bitCount == 32) {
+            printf("\nvalor do byte = %u\n", byte);
             byte = 0;
             bitCount = 0;
         }
     }
+    printf("\nvalor atual do cont: %d\n", cont);
 
-    // fsize = 13776;
-    fsize = 75084;
+    fsize = 3592 * 8;
+    // fsize = 75084 * 8;
     printf("File size: %d bytes\n", fsize);
-    
-    // // decode file
-    
+
+    // decode file
     file = fopen(name, "wb");
     if (!file)
     {
         printf("Cannot create file %s\n", name);
         exit(10);
     }
-    // decode the bytes of the file
 
-    // unsigned int *dados = malloc(fsize * sizeof(byte));
-    // int pos = 0;
     printf("escrevendo...\n");
     while (fsize) {
         if ((cont + 1) % 3 == 0) {
@@ -123,13 +113,7 @@ void decode(image In)
         byte |= (extraction & 0x01);
         bitCount++;
         if (bitCount == 8) {
-            // Quando o byte estiver completo escreve no arquivo
-            //fwrite(&byte, sizeof(byte), 1, file);
-            // printf("bit completo no cont = [%d]\n", cont);
-            // dados[pos++] = byte;
             fwrite(&byte, sizeof(byte), 1, file);
-            
-            // Reset variables for the next byte
             byte = 0;
             bitCount = 0;
         }
@@ -140,7 +124,6 @@ void decode(image In)
     printf("terminado!\n");
     fclose(file);
     free(name);
-    // free(dados);
 }
 
 void msg(char *s)
